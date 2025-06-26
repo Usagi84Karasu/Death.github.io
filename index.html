@@ -3,297 +3,243 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BoxFight.io</title>
+<title>Box Brawl.io</title>
 <style>
-    body {
-        margin: 0;
-        font-family: Arial;
-        background-color: #202225;
-        color: white;
-        overflow: hidden;
-    }
-    .menu, .scoreboard {
-        text-align: center;
-        padding-top: 20px;
-    }
-    .btn {
-        padding: 10px 20px;
-        background-color: #7289da;
-        border: none;
-        border-radius: 8px;
-        color: white;
-        cursor: pointer;
-        margin-top: 10px;
-    }
-    .btn:hover {
-        background-color: #5b6eae;
-    }
-    .trophies {
-        font-size: 18px;
-        margin-top: 10px;
-    }
-    #gameCanvas {
-        background-color: #2f3136;
-        display: none;
-        margin: auto;
-        border: 3px solid white;
-        touch-action: none;
-    }
-    #joystick {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        width: 100px;
-        height: 100px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        display: none;
-        touch-action: none;
-    }
-    #joystick .stick {
-        position: absolute;
-        width: 60px;
-        height: 60px;
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        top: 20px;
-        left: 20px;
-    }
+  body {
+    margin: 0;
+    background-color: #222;
+    color: white;
+    font-family: Arial;
+    overflow: hidden;
+    text-align: center;
+  }
+  #menu, #gameOver {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  button {
+    background: #5865f2;
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 8px;
+    font-size: 18px;
+  }
+  button:hover {
+    background: #4752c4;
+  }
+  canvas {
+    display: none;
+    background-color: #2f3136;
+    border: 2px solid white;
+  }
+  img {
+    border-radius: 50%;
+  }
 </style>
 </head>
 <body>
 
-<div class="menu" id="menu">
-    <h1>🎮 BoxFight.io</h1>
-
-    <a id="login-btn" href="#">
-        <img src="https://cdn-icons-png.flaticon.com/512/5968/5968756.png" alt="Connexion Discord" width="150">
-    </a>
-
-    <div id="user-info"></div>
-
-    <button onclick="startGame()" class="btn">Démarrer le jeu</button>
-
-    <div class="trophies">
-        🏆 Trophées : <span id="trophy-count">0</span>
-    </div>
+<!-- Menu -->
+<div id="menu">
+  <h1>🎮 Box Brawl.io</h1>
+  <div id="user-info">
+    <p>Non connecté</p>
+    <button onclick="loginDiscord()">Connexion Discord</button>
+  </div>
+  <button onclick="startGame()">Démarrer le jeu</button>
 </div>
 
-<canvas id="gameCanvas" width="800" height="600"></canvas>
+<!-- Jeu -->
+<canvas id="game"></canvas>
 
-<div id="joystick">
-    <div class="stick"></div>
-</div>
-
-<div class="scoreboard" id="scoreboard" style="display: none;">
-    <p>🏆 Trophées : <span id="trophies">0</span></p>
-    <button onclick="exitGame()" class="btn">Quitter</button>
+<!-- Game Over -->
+<div id="gameOver">
+  <h2>💀 Game Over</h2>
+  <p>Trophées gagnés : <span id="score"></span></p>
+  <button onclick="backToMenu()">Retour au menu</button>
 </div>
 
 <script>
-    const CLIENT_ID = '1387908913604726854';
-    const REDIRECT_URI = window.location.href.split('#')[0];
+const CLIENT_ID = '1387908913604726854';
+const REDIRECT_URI = window.location.origin + window.location.pathname;
+const AUTH_URL = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=identify`;
 
-    const AUTH_URL = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=identify`;
-    document.getElementById('login-btn').href = AUTH_URL;
+let user = null;
+let trophies = 0;
 
-    function getToken() {
-        const hash = window.location.hash;
-        if (hash.includes("access_token")) {
-            const params = new URLSearchParams(hash.substring(1));
-            return params.get("access_token");
-        }
-        return null;
+// Auth Discord
+function loginDiscord() {
+  window.location.href = AUTH_URL;
+}
+
+function getToken() {
+  const hash = window.location.hash;
+  if (hash.includes('access_token')) {
+    const params = new URLSearchParams(hash.substring(1));
+    return params.get('access_token');
+  }
+  return null;
+}
+
+async function fetchUser(token) {
+  const resp = await fetch('https://discord.com/api/users/@me', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return await resp.json();
+}
+
+// Récupérer token
+(async () => {
+  const token = getToken();
+  if (token) {
+    user = await fetchUser(token);
+    showUserInfo();
+    window.history.replaceState({}, document.title, REDIRECT_URI); // Nettoyer l'URL
+  }
+})();
+
+function showUserInfo() {
+  const div = document.getElementById('user-info');
+  div.innerHTML = `
+    <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" width="80"><br>
+    <p>${user.username}#${user.discriminator}</p>
+  `;
+}
+
+// === GAME ===
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+let player = { x: 400, y: 300, size: 30, speed: 4, alive: true };
+let boxes = [], enemies = [], keys = {};
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+
+function startGame() {
+  resizeCanvas();
+  player = { x: canvas.width / 2, y: canvas.height / 2, size: 30, speed: 5, alive: true };
+  trophies = 0;
+  boxes = [];
+  enemies = [];
+  spawnBoxes();
+  spawnEnemies();
+  document.getElementById("menu").style.display = "none";
+  document.getElementById("gameOver").style.display = "none";
+  canvas.style.display = "block";
+  requestAnimationFrame(gameLoop);
+}
+
+function gameLoop() {
+  if (!player.alive) {
+    endGame();
+    return;
+  }
+  update();
+  render();
+  requestAnimationFrame(gameLoop);
+}
+
+function update() {
+  if (keys["ArrowUp"] || keys["w"] || keys["z"]) player.y -= player.speed;
+  if (keys["ArrowDown"] || keys["s"]) player.y += player.speed;
+  if (keys["ArrowLeft"] || keys["a"] || keys["q"]) player.x -= player.speed;
+  if (keys["ArrowRight"] || keys["d"]) player.x += player.speed;
+
+  player.x = Math.max(0, Math.min(canvas.width, player.x));
+  player.y = Math.max(0, Math.min(canvas.height, player.y));
+
+  enemies.forEach(e => {
+    const dx = player.x - e.x;
+    const dy = player.y - e.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist > 0) {
+      e.x += (dx / dist) * e.speed;
+      e.y += (dy / dist) * e.speed;
     }
+    if (dist < player.size) player.alive = false;
+  });
 
-    const token = getToken();
-    if (token) {
-        fetch('https://discord.com/api/users/@me', {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(resp => resp.json())
-        .then(user => {
-            document.getElementById('user-info').innerHTML = `
-                <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" width="80" style="border-radius:50%;">
-                <p>${user.username}#${user.discriminator}</p>
-            `;
-        });
+  boxes = boxes.filter(box => {
+    const dx = player.x - box.x;
+    const dy = player.y - box.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < player.size) {
+      trophies++;
+      return false;
     }
+    return true;
+  });
 
-    const trophiesLocal = localStorage.getItem('trophies') || 0;
-    document.getElementById('trophy-count').textContent = trophiesLocal;
+  if (boxes.length < 5) spawnBoxes();
+}
 
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
+  ctx.fillStyle = "lime";
+  ctx.beginPath();
+  ctx.arc(player.x, player.y, player.size / 2, 0, Math.PI * 2);
+  ctx.fill();
 
-    let player = { x: 400, y: 300, size: 25, speed: 4 };
-    let boxes = [];
-    let keys = {};
-    let score = 0;
+  ctx.fillStyle = "gold";
+  boxes.forEach(b => {
+    ctx.fillRect(b.x - 10, b.y - 10, 20, 20);
+  });
 
-    function spawnBox() {
-        const box = {
-            x: Math.random() * (canvas.width - 30) + 15,
-            y: Math.random() * (canvas.height - 30) + 15,
-            size: 20
-        };
-        boxes.push(box);
-    }
+  ctx.fillStyle = "red";
+  enemies.forEach(e => {
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.size / 2, 0, Math.PI * 2);
+    ctx.fill();
+  });
 
-    setInterval(spawnBox, 1500);
+  ctx.fillStyle = "white";
+  ctx.font = "20px Arial";
+  ctx.fillText(`🏆 ${trophies}`, 20, 30);
+}
 
-    function drawPlayer() {
-        ctx.fillStyle = 'lime';
-        ctx.shadowColor = "black";
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.arc(player.x, player.y, player.size / 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-    }
-
-    function drawBoxes() {
-        ctx.fillStyle = 'gold';
-        boxes.forEach(box => {
-            ctx.beginPath();
-            ctx.roundRect(box.x - box.size/2, box.y - box.size/2, box.size, box.size, 5);
-            ctx.fill();
-        });
-    }
-
-    CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius) {
-        if (typeof radius === 'number') radius = {tl: radius, tr: radius, br: radius, bl: radius};
-        else {
-            const defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
-            for (let side in defaultRadius) radius[side] = radius[side] || defaultRadius[side];
-        }
-        this.beginPath();
-        this.moveTo(x + radius.tl, y);
-        this.lineTo(x + width - radius.tr, y);
-        this.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
-        this.lineTo(x + width, y + height - radius.br);
-        this.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
-        this.lineTo(x + radius.bl, y + height);
-        this.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
-        this.lineTo(x, y + radius.tl);
-        this.quadraticCurveTo(x, y, x + radius.tl, y);
-        this.closePath();
-    };
-
-    function update() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        movePlayer();
-        drawPlayer();
-        drawBoxes();
-        checkCollision();
-        requestAnimationFrame(update);
-    }
-
-    function movePlayer() {
-        if (keys['ArrowUp'] || keys['w'] || joystick.dy < -0.3) player.y -= player.speed;
-        if (keys['ArrowDown'] || keys['s'] || joystick.dy > 0.3) player.y += player.speed;
-        if (keys['ArrowLeft'] || keys['a'] || joystick.dx < -0.3) player.x -= player.speed;
-        if (keys['ArrowRight'] || keys['d'] || joystick.dx > 0.3) player.x += player.speed;
-
-        player.x = Math.max(player.size/2, Math.min(canvas.width - player.size/2, player.x));
-        player.y = Math.max(player.size/2, Math.min(canvas.height - player.size/2, player.y));
-    }
-
-    function checkCollision() {
-        boxes = boxes.filter(box => {
-            const dx = player.x - box.x;
-            const dy = player.y - box.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance < (player.size/2 + box.size/2)) {
-                score++;
-                document.getElementById('trophies').textContent = score;
-                return false;
-            }
-            return true;
-        });
-    }
-
-    document.addEventListener('keydown', (e) => {
-        keys[e.key] = true;
+function spawnBoxes() {
+  for (let i = 0; i < 5; i++) {
+    boxes.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height
     });
+  }
+}
 
-    document.addEventListener('keyup', (e) => {
-        keys[e.key] = false;
+function spawnEnemies() {
+  for (let i = 0; i < 3; i++) {
+    enemies.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: 30,
+      speed: 2 + Math.random() * 1.5
     });
+  }
+}
 
-    function startGame() {
-        resizeCanvas();
-        document.getElementById('menu').style.display = 'none';
-        canvas.style.display = 'block';
-        document.getElementById('scoreboard').style.display = 'block';
-        document.getElementById('joystick').style.display = isMobile() ? 'block' : 'none';
-        document.getElementById('trophies').textContent = 0;
-        score = 0;
-        boxes = [];
-        player.x = canvas.width / 2;
-        player.y = canvas.height / 2;
-        update();
-    }
+function endGame() {
+  canvas.style.display = "none";
+  document.getElementById("gameOver").style.display = "block";
+  document.getElementById("score").textContent = trophies;
+}
 
-    function exitGame() {
-        const currentTrophies = parseInt(localStorage.getItem('trophies') || '0');
-        localStorage.setItem('trophies', currentTrophies + score);
-        document.getElementById('trophy-count').textContent = currentTrophies + score;
-        canvas.style.display = 'none';
-        document.getElementById('scoreboard').style.display = 'none';
-        document.getElementById('menu').style.display = 'block';
-        document.getElementById('joystick').style.display = 'none';
-    }
+function backToMenu() {
+  document.getElementById("menu").style.display = "block";
+  document.getElementById("gameOver").style.display = "none";
+}
 
-    // 📱 JOYSTICK Mobile
-    const joystick = {
-        dx: 0,
-        dy: 0,
-        active: false,
-        startX: 0,
-        startY: 0
-    };
-
-    const joystickEl = document.getElementById('joystick');
-    const stick = joystickEl.querySelector('.stick');
-
-    function isMobile() {
-        return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    }
-
-    joystickEl.addEventListener('touchstart', (e) => {
-        joystick.active = true;
-        const touch = e.touches[0];
-        joystick.startX = touch.clientX;
-        joystick.startY = touch.clientY;
-    });
-
-    joystickEl.addEventListener('touchmove', (e) => {
-        const touch = e.touches[0];
-        const dx = touch.clientX - joystick.startX;
-        const dy = touch.clientY - joystick.startY;
-        const distance = Math.min(40, Math.sqrt(dx * dx + dy * dy));
-        const angle = Math.atan2(dy, dx);
-
-        stick.style.transform = `translate(${distance * Math.cos(angle)}px, ${distance * Math.sin(angle)}px)`;
-
-        joystick.dx = Math.cos(angle) * (distance / 40);
-        joystick.dy = Math.sin(angle) * (distance / 40);
-    });
-
-    joystickEl.addEventListener('touchend', () => {
-        joystick.active = false;
-        joystick.dx = 0;
-        joystick.dy = 0;
-        stick.style.transform = 'translate(0px, 0px)';
-    });
+// Controls
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
 </script>
 
 </body>
