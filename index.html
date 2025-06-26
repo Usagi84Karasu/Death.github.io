@@ -1,14 +1,59 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Connexion avec Discord</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion Discord</title>
 </head>
-<body style="display:flex;justify-content:center;align-items:center;height:100vh;background-color:#333;">
+<body style="text-align: center; font-family: Arial;">
 
-    <a href="https://discord.com/oauth2/authorize?client_id=1387908913604726854&response_type=code&redirect_uri=https%3A%2F%2Fusagi84karasu.github.io%2FDeath.github.io%2F&scope=identify">
-        <img src="https://cdn.discordapp.com/attachments/1109918678422370385/1120735307180705792/discord-button.png" alt="Se connecter avec Discord">
-    </a>
+<!-- 🔘 Bouton de connexion Discord -->
+<a id="login-btn" href="#">
+  <img src="https://cdn-icons-png.flaticon.com/512/5968/5968756.png" 
+       alt="Connexion Discord" 
+       width="200">
+</a>
+
+<!-- 🔥 Espace pour afficher les infos utilisateur -->
+<div id="user-info" style="margin-top: 20px;"></div>
+
+<script>
+  const CLIENT_ID = '1387908913604726854';
+  const REDIRECT_URI = 'https://usagi84karasu.github.io/Death.github.io/';
+  
+  const AUTH_URL = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=identify`;
+
+  document.getElementById('login-btn').href = AUTH_URL;
+
+  // 🔥 Fonction pour récupérer le token dans l'URL
+  function getToken() {
+    const hash = window.location.hash;
+    if (hash.includes("access_token")) {
+      const params = new URLSearchParams(hash.substring(1));
+      return params.get("access_token");
+    }
+    return null;
+  }
+
+  // 🔥 Si connecté, récupérer les infos utilisateur
+  const token = getToken();
+  if (token) {
+    fetch('https://discord.com/api/users/@me', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    .then(resp => resp.json())
+    .then(user => {
+      document.getElementById('user-info').innerHTML = `
+        <h2>Bienvenue ${user.username}#${user.discriminator}</h2>
+        <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" 
+             alt="Avatar" width="100" style="border-radius:50%;">
+        <p>ID : ${user.id}</p>
+      `;
+    });
+  }
+</script>
 
 </body>
 </html>
