@@ -4,28 +4,74 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Connexion Discord</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(to right, #5865F2, #404EED);
+      color: white;
+      margin: 0;
+      padding: 50px;
+    }
+
+    .button {
+      background-color: white;
+      color: #5865F2;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 18px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      text-decoration: none;
+      transition: 0.3s;
+      display: inline-block;
+      margin-top: 20px;
+    }
+
+    .button:hover {
+      background-color: #f0f0f0;
+    }
+
+    #user-info {
+      background-color: rgba(0,0,0,0.2);
+      padding: 20px;
+      border-radius: 20px;
+      display: inline-block;
+      margin-top: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    img {
+      border-radius: 50%;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    h2 {
+      margin-top: 10px;
+      font-weight: normal;
+    }
+  </style>
 </head>
-<body style="text-align: center; font-family: Arial;">
+<body>
 
-<!-- 🔘 Bouton de connexion Discord -->
-<a id="login-btn" href="#">
-  <img src="https://cdn-icons-png.flaticon.com/512/5968/5968756.png" 
-       alt="Connexion Discord" 
-       width="200">
-</a>
+<!-- 🔘 Bouton Connexion -->
+<a id="login-btn" class="button" href="#">Se connecter avec Discord</a>
 
-<!-- 🔥 Espace pour afficher les infos utilisateur -->
-<div id="user-info" style="margin-top: 20px;"></div>
+<!-- 🔥 Infos utilisateur -->
+<div id="user-info" style="display: none;"></div>
+
+<!-- 🚪 Bouton Déconnexion -->
+<button id="logout-btn" class="button" style="display: none;">Déconnexion</button>
 
 <script>
   const CLIENT_ID = '1387908913604726854';
   const REDIRECT_URI = 'https://usagi84karasu.github.io/Death.github.io/';
-  
+
   const AUTH_URL = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=identify`;
 
   document.getElementById('login-btn').href = AUTH_URL;
 
-  // 🔥 Fonction pour récupérer le token dans l'URL
   function getToken() {
     const hash = window.location.hash;
     if (hash.includes("access_token")) {
@@ -35,9 +81,20 @@
     return null;
   }
 
-  // 🔥 Si connecté, récupérer les infos utilisateur
+  function logout() {
+    window.location.hash = '';
+    window.location.reload();
+  }
+
   const token = getToken();
+  const loginBtn = document.getElementById('login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  const userInfo = document.getElementById('user-info');
+
   if (token) {
+    loginBtn.style.display = 'none';
+    logoutBtn.style.display = 'inline-block';
+
     fetch('https://discord.com/api/users/@me', {
       headers: {
         Authorization: `Bearer ${token}`
@@ -45,13 +102,15 @@
     })
     .then(resp => resp.json())
     .then(user => {
-      document.getElementById('user-info').innerHTML = `
-        <h2>Bienvenue ${user.username}#${user.discriminator}</h2>
+      userInfo.innerHTML = `
         <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" 
-             alt="Avatar" width="100" style="border-radius:50%;">
-        <p>ID : ${user.id}</p>
+             alt="Avatar" width="100">
+        <h2>${user.username}#${user.discriminator}</h2>
       `;
+      userInfo.style.display = 'block';
     });
+
+    logoutBtn.addEventListener('click', logout);
   }
 </script>
 
