@@ -3,75 +3,525 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Connexion Discord</title>
+  <title>SocialCord - Réseau Social Discord</title>
   <style>
-    body {
-      text-align: center;
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: linear-gradient(to right, #5865F2, #404EED);
-      color: white;
+    * {
       margin: 0;
-      padding: 50px;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    .button {
-      background-color: white;
-      color: #5865F2;
-      padding: 12px 25px;
-      border: none;
-      border-radius: 30px;
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #1a202c;
+    }
+
+    /* Top Navbar */
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border-bottom: 3px solid #e53e3e;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(45deg, #e53e3e, #ff6b6b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-menu {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .nav-btn {
+      padding: 0.8rem 1.8rem;
+      border: 2px solid #e53e3e;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 18px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
       text-decoration: none;
-      transition: 0.3s;
-      display: inline-block;
-      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    .button:hover {
-      background-color: #f0f0f0;
+    .nav-btn.primary {
+      background: #e53e3e;
+      color: white;
     }
 
-    #user-info {
-      background-color: rgba(0,0,0,0.2);
-      padding: 20px;
-      border-radius: 20px;
-      display: inline-block;
-      margin-top: 30px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    .nav-btn.primary:hover {
+      background: #c53030;
+      transform: translateY(-2px);
     }
 
-    img {
+    .nav-btn.secondary {
+      background: transparent;
+      color: #e53e3e;
+    }
+
+    .nav-btn.secondary:hover {
+      background: #e53e3e;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: rgba(229, 62, 62, 0.1);
+      padding: 0.5rem 1rem;
+      border-radius: 25px;
+      border: 2px solid #e53e3e;
+    }
+
+    .user-avatar {
+      width: 45px;
+      height: 45px;
       border-radius: 50%;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      border: 3px solid #e53e3e;
     }
 
-    h2 {
-      margin-top: 10px;
-      font-weight: normal;
+    .user-name {
+      font-weight: 600;
+      color: #e53e3e;
+      font-size: 1.1rem;
+    }
+
+    /* Login Page */
+    .login-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .login-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      padding: 4rem;
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+      max-width: 500px;
+      width: 100%;
+      border: 3px solid #e53e3e;
+    }
+
+    .login-title {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      background: linear-gradient(45deg, #e53e3e, #ff6b6b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .login-description {
+      color: #4a5568;
+      margin-bottom: 2.5rem;
+      font-size: 1.1rem;
+      font-weight: 500;
+      line-height: 1.6;
+    }
+
+    .discord-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.2rem 2.5rem;
+      background: #5865f2;
+      color: white;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      border: 3px solid #5865f2;
+    }
+
+    .discord-btn:hover {
+      background: #4752c4;
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(88, 101, 242, 0.3);
+    }
+
+    /* Main Content */
+    .container {
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+
+    /* Post Creator */
+    .post-creator {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      padding: 2.5rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+      border: 3px solid #e53e3e;
+    }
+
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      color: #1a202c;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .file-input {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-input-label {
+      display: block;
+      padding: 3rem;
+      border: 3px dashed #e53e3e;
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(229, 62, 62, 0.05);
+      color: #e53e3e;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .file-input-label:hover {
+      background: rgba(229, 62, 62, 0.1);
+      border-color: #c53030;
+      transform: translateY(-2px);
+    }
+
+    .file-input-label small {
+      display: block;
+      margin-top: 0.5rem;
+      color: #718096;
+      font-weight: 500;
+    }
+
+    .image-preview {
+      max-width: 100%;
+      max-height: 350px;
+      border-radius: 12px;
+      margin-bottom: 2rem;
+      border: 3px solid #e53e3e;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .caption-input {
+      width: 100%;
+      padding: 1.2rem;
+      border: 3px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-family: inherit;
+      font-weight: 500;
+      resize: vertical;
+      min-height: 100px;
+      margin-bottom: 2rem;
+      transition: all 0.3s ease;
+    }
+
+    .caption-input:focus {
+      outline: none;
+      border-color: #e53e3e;
+      background: rgba(229, 62, 62, 0.02);
+    }
+
+    .post-btn {
+      width: 100%;
+      padding: 1.2rem;
+      background: #e53e3e;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .post-btn:hover:not(:disabled) {
+      background: #c53030;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(229, 62, 62, 0.3);
+    }
+
+    .post-btn:disabled {
+      background: #cbd5e0;
+      color: #a0aec0;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Posts Feed */
+    .post {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      overflow: hidden;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+      border: 2px solid #e2e8f0;
+      transition: all 0.3s ease;
+    }
+
+    .post:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+      border-color: #e53e3e;
+    }
+
+    .post-header {
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 2px solid #f7fafc;
+    }
+
+    .post-avatar {
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      border: 3px solid #e53e3e;
+    }
+
+    .post-author {
+      font-weight: 700;
+      color: #1a202c;
+      font-size: 1.1rem;
+    }
+
+    .post-time {
+      color: #718096;
+      font-size: 0.95rem;
+      font-weight: 500;
+      margin-top: 0.2rem;
+    }
+
+    .post-image {
+      width: 100%;
+      max-height: 500px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .post-content {
+      padding: 1.5rem;
+      color: #2d3748;
+      font-weight: 500;
+      line-height: 1.6;
+      font-size: 1.05rem;
+    }
+
+    .post-actions {
+      padding: 1.2rem 1.5rem;
+      border-top: 2px solid #f7fafc;
+      display: flex;
+      gap: 2rem;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      padding: 0.8rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #4a5568;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .action-btn:hover {
+      background: rgba(229, 62, 62, 0.1);
+      color: #e53e3e;
+      transform: translateY(-1px);
+    }
+
+    .like-btn.liked {
+      color: #e53e3e;
+      background: rgba(229, 62, 62, 0.1);
+    }
+
+    .empty-feed {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 4rem;
+      text-align: center;
+      border: 3px solid #e53e3e;
+    }
+
+    .empty-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #1a202c;
+    }
+
+    .empty-description {
+      margin-bottom: 2rem;
+      font-weight: 500;
+      color: #4a5568;
+      font-size: 1.1rem;
+    }
+
+    .empty-btn {
+      padding: 1rem 2rem;
+      background: #e53e3e;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+    }
+
+    .empty-btn:hover {
+      background: #c53030;
+      transform: translateY(-2px);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .nav-menu {
+        gap: 1rem;
+      }
+
+      .container {
+        padding: 0 1rem;
+      }
+      
+      .post-creator, .login-card {
+        padding: 2rem;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+      }
+
+      .login-title {
+        font-size: 2rem;
+      }
     }
   </style>
 </head>
 <body>
 
-<!-- 🔘 Bouton Connexion -->
-<a id="login-btn" class="button" href="#">Se connecter avec Discord</a>
+<!-- Top Navbar -->
+<nav class="navbar">
+  <div class="logo">🎮 SocialCord</div>
+  <div class="nav-menu" id="nav-menu">
+    <button class="nav-btn primary" onclick="showFeed()">📱 Feed</button>
+    <button class="nav-btn secondary" onclick="showPostCreator()">📸 Publier</button>
+  </div>
+  <div class="user-profile hidden" id="user-profile">
+    <img class="user-avatar" id="user-avatar" src="" alt="Avatar">
+    <span class="user-name" id="user-name"></span>
+  </div>
+</nav>
 
-<!-- 🔥 Infos utilisateur -->
-<div id="user-info" style="display: none;"></div>
+<!-- Login Page -->
+<div id="login-page" class="login-container">
+  <div class="login-card">
+    <h1 class="login-title">🎮 SocialCord</h1>
+    <p class="login-description">Rejoignez notre communauté Discord et partagez vos plus beaux moments avec vos amis gamers !</p>
+    <a id="login-btn" class="discord-btn" href="#">
+      <span>🎮</span>
+      <span>Se connecter avec Discord</span>
+    </a>
+  </div>
+</div>
 
-<!-- 🚪 Bouton Déconnexion -->
-<button id="logout-btn" class="button" style="display: none;">Déconnexion</button>
+<!-- Main App -->
+<div id="main-app" class="hidden">
+  <div class="container">
+    
+    <!-- Post Creator -->
+    <div id="post-creator" class="post-creator hidden">
+      <h2 class="section-title">📸 Créer un nouveau post</h2>
+      <div class="file-input-wrapper">
+        <input type="file" id="image-input" class="file-input" accept="image/*">
+        <label for="image-input" class="file-input-label">
+          <div>📷 Cliquez pour sélectionner une image</div>
+          <small>PNG, JPG, GIF jusqu'à 10MB</small>
+        </label>
+      </div>
+      <img id="image-preview" class="image-preview hidden" alt="Aperçu">
+      <textarea id="caption-input" class="caption-input" placeholder="Partagez votre histoire... Que s'est-il passé ?"></textarea>
+      <button id="post-btn" class="post-btn" disabled>📤 Publier mon post</button>
+    </div>
+
+    <!-- Posts Feed -->
+    <div id="posts-feed"></div>
+  </div>
+</div>
 
 <script>
   const CLIENT_ID = '1387908913604726854';
   const REDIRECT_URI = 'https://usagi84karasu.github.io/Death.github.io/';
-
+  
   const AUTH_URL = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=identify`;
 
+  let currentUser = null;
+  let posts = JSON.parse(localStorage.getItem('socialcord_posts') || '[]');
+
+  // Initialize
   document.getElementById('login-btn').href = AUTH_URL;
 
+  // Get token from URL
   function getToken() {
     const hash = window.location.hash;
     if (hash.includes("access_token")) {
@@ -81,20 +531,9 @@
     return null;
   }
 
-  function logout() {
-    window.location.hash = '';
-    window.location.reload();
-  }
-
+  // Initialize app
   const token = getToken();
-  const loginBtn = document.getElementById('login-btn');
-  const logoutBtn = document.getElementById('logout-btn');
-  const userInfo = document.getElementById('user-info');
-
   if (token) {
-    loginBtn.style.display = 'none';
-    logoutBtn.style.display = 'inline-block';
-
     fetch('https://discord.com/api/users/@me', {
       headers: {
         Authorization: `Bearer ${token}`
@@ -102,17 +541,234 @@
     })
     .then(resp => resp.json())
     .then(user => {
-      userInfo.innerHTML = `
-        <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png" 
-             alt="Avatar" width="100">
-        <h2>${user.username}#${user.discriminator}</h2>
-      `;
-      userInfo.style.display = 'block';
+      currentUser = user;
+      setupUserInterface();
+      showFeed();
+      window.history.replaceState({}, document.title, window.location.pathname);
+    })
+    .catch(err => {
+      console.error('Erreur lors de la récupération des données utilisateur:', err);
+      showLoginPage();
     });
-
-    logoutBtn.addEventListener('click', logout);
+  } else {
+    showLoginPage();
   }
-</script>
 
-</body>
-</html>
+  function showLoginPage() {
+    document.getElementById('login-page').classList.remove('hidden');
+    document.getElementById('main-app').classList.add('hidden');
+  }
+
+  function setupUserInterface() {
+    document.getElementById('login-page').classList.add('hidden');
+    document.getElementById('main-app').classList.remove('hidden');
+    
+    const userProfile = document.getElementById('user-profile');
+    const userAvatar = document.getElementById('user-avatar');
+    const userName = document.getElementById('user-name');
+    
+    userProfile.classList.remove('hidden');
+    userAvatar.src = `https://cdn.discordapp.com/avatars/${currentUser.id}/${currentUser.avatar}.png`;
+    userName.textContent = currentUser.username;
+  }
+
+  function showFeed() {
+    document.getElementById('post-creator').classList.add('hidden');
+    updateNavButtons('feed');
+    renderPosts();
+  }
+
+  function showPostCreator() {
+    document.getElementById('post-creator').classList.remove('hidden');
+    document.getElementById('posts-feed').innerHTML = '';
+    updateNavButtons('post');
+  }
+
+  function updateNavButtons(active) {
+    const buttons = document.querySelectorAll('.nav-btn');
+    buttons.forEach(btn => {
+      btn.classList.remove('primary');
+      btn.classList.add('secondary');
+    });
+    
+    if (active === 'feed') {
+      buttons[0].classList.remove('secondary');
+      buttons[0].classList.add('primary');
+    } else {
+      buttons[1].classList.remove('secondary');
+      buttons[1].classList.add('primary');
+    }
+  }
+
+  // Image upload handling
+  document.getElementById('image-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById('image-preview');
+        preview.src = e.target.result;
+        preview.classList.remove('hidden');
+        updatePostButton();
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  document.getElementById('caption-input').addEventListener('input', updatePostButton);
+
+  function updatePostButton() {
+    const hasImage = !document.getElementById('image-preview').classList.contains('hidden');
+    document.getElementById('post-btn').disabled = !hasImage;
+  }
+
+  // Post creation
+  document.getElementById('post-btn').addEventListener('click', function() {
+    const imagePreview = document.getElementById('image-preview');
+    const caption = document.getElementById('caption-input').value.trim();
+    
+    if (imagePreview.src && currentUser) {
+      const newPost = {
+        id: Date.now().toString(),
+        author: {
+          id: currentUser.id,
+          username: currentUser.username,
+          avatar: `https://cdn.discordapp.com/avatars/${currentUser.id}/${currentUser.avatar}.png`
+        },
+        image: imagePreview.src,
+        caption: caption,
+        timestamp: new Date().toISOString(),
+        likes: 0,
+        likedBy: []
+      };
+
+      posts.unshift(newPost);
+      savePosts();
+      
+      // Reset form
+      document.getElementById('image-input').value = '';
+      document.getElementById('image-preview').classList.add('hidden');
+      document.getElementById('caption-input').value = '';
+      updatePostButton();
+      
+      showFeed();
+    }
+  });
+
+  function savePosts() {
+    localStorage.setItem('socialcord_posts', JSON.stringify(posts));
+  }
+
+  function renderPosts() {
+    const feedContainer = document.getElementById('posts-feed');
+    feedContainer.innerHTML = '';
+
+    if (posts.length === 0) {
+      feedContainer.innerHTML = `
+        <div class="empty-feed">
+          <h3 class="empty-title">🌟 Votre feed vous attend !</h3>
+          <p class="empty-description">Soyez le premier à partager un moment épique avec la communauté</p>
+          <button class="empty-btn" onclick="showPostCreator()">✨ Créer mon premier post</button>
+        </div>
+      `;
+      return;
+    }
+
+    posts.forEach(post => {
+      const postElement = createPostElement(post);
+      feedContainer.appendChild(postElement);
+    });
+  }
+
+  function createPostElement(post) {
+    const postDiv = document.createElement('div');
+    postDiv.className = 'post';
+    
+    const timeAgo = getTimeAgo(post.timestamp);
+    const isLiked = post.likedBy.includes(currentUser?.id);
+    
+    postDiv.innerHTML = `
+      <div class="post-header">
+        <img class="post-avatar" src="${post.author.avatar}" alt="Avatar">
+        <div>
+          <div class="post-author">${post.author.username}</div>
+          <div class="post-time">${timeAgo}</div>
+        </div>
+      </div>
+      <img class="post-image" src="${post.image}" alt="Post image">
+      ${post.caption ? `<div class="post-content">${post.caption}</div>` : ''}
+      <div class="post-actions">
+        <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${post.id}')">
+          ${isLiked ? '❤️' : '🤍'} ${post.likes}
+        </button>
+        <button class="action-btn">💬 Commenter</button>
+        <button class="action-btn">🚀 Partager</button>
+      </div>
+    `;
+    
+    return postDiv;
+  }
+
+  function toggleLike(postId) {
+    const post = posts.find(p => p.id === postId);
+    if (!post || !currentUser) return;
+
+    const userIndex = post.likedBy.indexOf(currentUser.id);
+    if (userIndex > -1) {
+      post.likedBy.splice(userIndex, 1);
+      post.likes--;
+    } else {
+      post.likedBy.push(currentUser.id);
+      post.likes++;
+    }
+
+    savePosts();
+    renderPosts();
+  }
+
+  function getTimeAgo(timestamp) {
+    const now = new Date();
+    const postTime = new Date(timestamp);
+    const diffMs = now - postTime;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'À l\'instant';
+    if (diffMins < 60) return `Il y a ${diffMins}min`;
+    if (diffHours < 24) return `Il y a ${diffHours}h`;
+    if (diffDays < 7) return `Il y a ${diffDays}j`;
+    
+    return postTime.toLocaleDateString('fr-FR');
+  }
+
+  // Initialize with sample posts if none exist
+  if (posts.length === 0) {
+    const samplePosts = [
+      {
+        id: '1',
+        author: {
+          id: 'sample1',
+          username: 'GameMaster',
+          avatar: 'https://cdn.discordapp.com/embed/avatars/0.png'
+        },
+        image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=600&h=400&fit=crop',
+        caption: '🎮 Ma nouvelle setup gaming est enfin terminée ! RGB à fond et performances au max. Qu\'est-ce que vous en pensez les amis ?',
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
+        likes: 42,
+        likedBy: []
+      },
+      {
+        id: '2',
+        author: {
+          id: 'sample2',
+          username: 'PhotoPro',
+          avatar: 'https://cdn.discordapp.com/embed/avatars/1.png'
+        },
+        image: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=600&h=400&fit=crop',
+        caption: '📸 Coucher de soleil absolument magique aujourd\'hui ! J\'ai pas pu résister à prendre cette photo. La nature nous offre vraiment des spectacles incroyables.',
+        timestamp: new Date(Date.now() - 7200000).toISOString(),
+        likes: 28,
+        likedBy: []
+      }
+   
